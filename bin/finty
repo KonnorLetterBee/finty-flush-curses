@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'dispel'
+require 'game/finty_flush'
+require 'util/log'
+
+$DEBUG = true
+
+def draw(finty)
+  out = [finty.board, finty.status, "BKSP=Quit \\=Reset"] 
+  out.push [
+    "\nGame Log:", finty.log,
+#    "State Log:", finty.state.log, 
+    "App Log:", @log.get
+  ] if $DEBUG
+  out.join("\n")
+end
+
+@log = Log.new(1)
+@TEST_idx = 0
+Dispel::Screen.open do |screen|
+  finty = FintyFlush.new
+  screen.draw draw(finty)
+
+  Dispel::Keyboard.output do |key|
+  	@log.log key
+    case key
+    when :backspace then break
+    when       "\\" then finty = FintyFlush.new
+    else                 finty.state.key_input(key)
+    end
+    screen.draw draw(finty)
+  end
+end
