@@ -14,6 +14,7 @@ class FintyPool
     raise "Invalid config class" unless config.class == FintyConfig
     @config = config
     @cols = []
+    @offset = 0
     (0...@config.starting_cols).each do
       drop_col 1
     end
@@ -60,20 +61,28 @@ class FintyPool
   # Removes and returns the column at the specified index
   def delete(index)
     @cols.delete_at(index)
+    validate
   end
 
   def delete_center
     @cols.delete_at(mid_board - offset)
+    validate
   end
 
   # Adds a new random column to one side of the current board
   #   dir [int] - the comparison vale denoting the drop location 
   #   relative to the rest of the array to place the new column
   #   (positive will append, negative will prepend)
-  def drop_col(dir)
+  def drop_col(user=true,dir=pref_dir)
+    return false unless can_drop(dir,user)
     @cols.push FintyUtils.random_col(@config) if dir > 0
     @cols.unshift FintyUtils.random_col(@config) if dir < 0
     @offset -= 1 if dir < 0
+    validate
+  end
+
+  def can_drop(user=true,dir=pref_dir)
+    @cols.size < (user ? @config.cols_droppable : @config.cols_fail)
   end
 
   # Calculates the index of the middle column in the board, 
@@ -87,8 +96,8 @@ class FintyPool
   # usable columns, favoring the left in the event of an even 
   # number of columns
   def mid_columns
-    mid = @config.starting_cols / 2
-    @config.starting_cols%2 == 0 ? mid-1 : mid
+    mid = @cols.size / 2
+    @cols.size%2 == 0 ? mid-1 : mid
   end
 
   private
@@ -104,5 +113,10 @@ class FintyPool
     @offset = NumberUtil.clamp(@offset, 
                                [        0, mid_board-size+1].max, 
                                [mid_board, max_size - size ].min)
+  end
+
+  def pref_dir
+    val = mid_board() - (mid_columns() + @offset)
+    return val == 0 ? -1 : val
   end
 end

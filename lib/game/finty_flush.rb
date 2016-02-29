@@ -61,7 +61,11 @@ class FintyFlush
   end
 
   def drop_current
-    @pool.delete_center if curr_square.drop_col(@sq_offset, @pool.col_center)
+    if curr_square.drop_col(@sq_offset, @pool.col_center)
+      @pool.delete_center
+    else
+      @pool.drop_col
+    end
   end
 
 #-----------------------------------------------

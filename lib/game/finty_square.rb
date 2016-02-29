@@ -40,12 +40,12 @@ class FintySquare
   # in the corresponding index in the square. If ANY of the spaces
   # have a conflict, the drop will fail.
   def drop_col(x,col,force=false)
-    false unless verify_size(x) and verify_col(col)
-    false unless can_drop(x,col) or force
+    return false unless verify_size(x) and verify_col(col)
+    return false unless can_drop(x,col) or force
     (0...@size).each do |y|
       @square[x][y] = col[y] unless col[y] == -1
     end
-    true
+    return true
   end
 
   # Tests to see if a "drop" action can be performed on the square 
@@ -53,11 +53,11 @@ class FintySquare
   #
   # See also: drop_col(x,col,force)
   def can_drop(x,col)
-    false unless verify_size(x) and verify_col(col)
+    return false unless verify_size(x) and verify_col(col)
     (0...@size).each do |y|
-      false unless @square[x][y] == -1 or col[y] == -1
+      return false if @square[x][y] != -1 and col[y] != -1
     end
-    true
+    return true
   end
 
   def get(x,y)
