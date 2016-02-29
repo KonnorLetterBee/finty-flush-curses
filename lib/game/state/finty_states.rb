@@ -69,6 +69,12 @@ class FintyStateMachine < StateMachine
     when "f" then 
       sqstate
       @game.sq_offset += 1
+    when "a" then 
+      sqstate
+      @game.curr_sq_idx -= 1
+    when "g" then 
+      sqstate
+      @game.curr_sq_idx += 1
     when "q" then
       @game.rotate_curr(-1)
     when "t" then
