@@ -26,6 +26,7 @@ class FintyFlush
       @squares.push FintySquare.new(@config.col_length)
     end
     @state = FintyStateMachine.new(self)
+    @log.log(self.pool.class)
   end
 
 #-----------------------------------------------
@@ -74,32 +75,33 @@ class FintyFlush
 
   # Returns a string representation of the current game
   def board
-    #TODO: sort out this fucking draw function
-    active = state.cols_active
-    out = (active ? $╔ : $┌)
-    out += (active ? $═ : $─)*@pool.max_size()
-    out += (active ? $╗ : $┐)+"\n"
+    SpecialChars.boxChars(pool_draw,    state.cols_active    ? :double : :single) + "\n" +
+    SpecialChars.boxChars(squares_draw, state.squares_active ? :double : :single) + "\n"
+  end
+
+  def pool_draw
+    out = "┌#{ $─*@pool.max_size() }┐\n"  # ┌─────────────┐
     ( 0...@config.col_length ).each do |row|
-      out += state.cols_active ? $║ : $│
+      out += "│"
       ( 0...@pool.max_size() ).each do |col|
         index = col - @pool.offset()
         col = index >= 0 ? @pool.col(index) : nil
         val = col ? col[row] : -1;
         out += (val == -1) ? ' ' : val.to_s
       end
-      out += (state.cols_active ? $║ : $│)+"\n"
+      out += "│\n"
     end
 
     max = @pool.max_size
     mid = @pool.mid_board
-    out += (active ? $╚ : $└)
-    out += (active ? $═ : $─)*(mid-1)
-    out += (active ? "╗ ╔" : "┐ ┌")
-    out += (active ? $═ : $─)*(max-(mid+2))
-    out += (active ? $╝ : $┘) + "\n\n+"
+    out += "└#{$─*(mid-1)}┐ ┌#{$─*(max-(mid+2))}┘\n"  # └─────┐ ┌─────┘
+    return out
+  end
 
-    ( 0...@config.squares_per_row ).each do
-      out += "-"*@config.col_length*2 + "+"
+  def squares_draw
+    out = "┌"
+    ( 0...@config.squares_per_row ).each do |idx|
+      out += "─"*@config.col_length*2 + (idx == @config.squares_per_row-1 ? "┐" : "┬")
     end
     out += "\n"
     # for each row of @config.squares
@@ -107,22 +109,21 @@ class FintyFlush
       # for each row in an individual square
       ( 0...@config.col_length ).each do |y|
         row_start = sq_row * @config.squares_per_row
-        out += "|"
+        out += "│"
         # for each square in the row of @config.squares
         ( row_start ... row_start + @config.squares_per_row ).each do |sq|
           # for each column in the current square
           ( 0...@config.col_length ).each do |x|
             val = @squares[sq].get(x, y)
             out += val == -1 ? "  " : format("%2d", val)
-          end;  out += "|"
+          end;  out += "│"
         end;  out += "\n"
-      end;  out += "+"
-      ( 0...@config.squares_per_row ).each do
-        out += "-"*@config.col_length*2 + "+"
+      end;  out += "└"
+      ( 0...@config.squares_per_row ).each do |idx|
+        out += "─"*@config.col_length*2 + (idx == @config.squares_per_row-1 ? "┘" : "┴")
       end;  out += "\n"
-    end;
+    end
     sq_char_w = @config.col_length * 2 + 1
     out += " "*(1+(sq_char_w * @curr_sq_idx)+@sq_offset * 2) + "^"
-    out += "\n"
   end
 end

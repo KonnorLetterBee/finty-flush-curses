@@ -18,6 +18,7 @@ class GameColumnState < FintyState
     case key
     when  :left then @game.pool.offset -= 1
     when :right then @game.pool.offset += 1
+    when  :down then @game.state.set(GameSquareState.new(@game))
     end
   end
 
@@ -30,8 +31,7 @@ class GameSquareState < FintyState
     case key
     when  :left then @game.sq_offset -= 1
     when :right then @game.sq_offset += 1
-    when    :up then @game.rotate_curr(-1)
-    when  :down then @game.rotate_curr(1)
+    when    :up then @game.state.set(GameColumnState.new(@game))
     end
   end
 
